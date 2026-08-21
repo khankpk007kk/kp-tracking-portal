@@ -1,4 +1,4 @@
-﻿buildscript {
+buildscript {
     repositories {
         google()
         mavenCentral()
@@ -7,7 +7,6 @@
         classpath 'com.android.tools.build:gradle:8.1.0'
     }
 }
-
 allprojects {
     repositories {
         google()
