@@ -3,7 +3,8 @@
     name: Android APK Build
     max_build_duration: 60
     environment:
-      android_signing: []
+      vars:
+        PACKAGE_NAME: "com.secretariat.workflow"
     triggering:
       events:
         - push
@@ -19,12 +20,12 @@
         script: |
           cd android
           chmod +x ./gradlew
-      - name: Build Release APK
+      - name: Build Debug APK
         script: |
           cd android
-          ./gradlew assembleRelease --no-daemon
+          ./gradlew assembleDebug --no-daemon
     artifacts:
-      - android/app/build/outputs/apk/release/*.apk
+      - android/app/build/outputs/apk/debug/*.apk
     publishing:
       email:
         recipients:
