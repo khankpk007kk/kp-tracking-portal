@@ -16,13 +16,14 @@
       - name: Set up Android SDK
         script: |
           echo "sdk.dir=$ANDROID_SDK_ROOT" > "android/local.properties"
-      - name: Make gradlew executable
+      - name: Generate Gradle wrapper
         script: |
           cd android
-          chmod +x ./gradlew
+          gradle wrapper --gradle-version 8.2
       - name: Build Debug APK
         script: |
           cd android
+          chmod +x ./gradlew
           ./gradlew assembleDebug --no-daemon
     artifacts:
       - android/app/build/outputs/apk/debug/*.apk
