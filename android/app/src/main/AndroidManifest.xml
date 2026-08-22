@@ -1,12 +1,108 @@
+﻿package com.secretariat.workflow;
+
+import android.app.Activity;
+import android.content.Intent;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
+import android.os.Bundle;
+import android.view.Window;
+import android.view.WindowManager;
+import android.webkit.ValueCallback;
+import android.webkit.WebChromeClient;
+import android.webkit.WebSettings;
+import android.webkit.WebView;
+import android.webkit.WebViewClient;
+import android.widget.Toast;
+
+public class MainActivity extends Activity {
+    private WebView webView;
+    private static final String APP_URL = "https://kp-tracking-app.streamlit.app";
+    private ValueCallback<Uri[]> mUploadMessage;
+    private static final int FILECHOOSER_RESULTCODE = 1;
+    private long backPressedTime;
+    private Toast backToast;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        requestWindowFeature(Window.FEATURE_NO_TITLE);
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        
+        webView = new WebView(this);
+        setContentView(webView);
+        
+        WebSettings settings = webView.getSettings();
+        settings.setJavaScriptEnabled(true);
+        settings.setDomStorageEnabled(true);
+        settings.setAllowFileAccess(true);
+        settings.setAllowContentAccess(true);
+        settings.setMediaPlaybackRequiresUserGesture(false);
+        settings.setCacheMode(WebSettings.LOAD_DEFAULT);
+        settings.setGeolocationEnabled(true);
+        settings.setSupportZoom(true);
+        settings.setBuiltInZoomControls(true);
+        settings.setDisplayZoomControls(false);
+        settings.setUseWideViewPort(true);
+        settings.setLoadWithOverviewMode(true);
+        settings.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
+
+        webView.setWebViewClient(new WebViewClient() {
+            @Override
+            public void onReceivedError(WebView view, int errorCode, String description, String failingUrl) {
+                if (!isNetworkAvailable()) {
+                    webView.loadData("<html><body style='text-align:center; padding:50px; font-family:sans-serif;'><h2>No Internet Connection</h2><p>Please check your network settings and try again.</p><button onclick='location.reload()' style='padding:10px 20px; background:#15346b; color:white; border:none; border-radius:5px; margin-top:20px;'>Retry</button></body></html>", "text/html", "UTF-8");
+                }
+            }
+        });
+
+        webView.setWebChromeClient(new WebChromeClient() {
+            public boolean onShowFileChooser(WebView webView, ValueCallback<Uri[]> filePathCallback, FileChooserParams fileChooserParams) {
+                if (mUploadMessage != null) {
+                    mUploadMessage.onReceiveValue(null);
+                }
+                mUploadMessage = filePathCallback;
+                Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+                intent.addCategory(Intent.CATEGORY_OPENABLE);
+                intent.setType("*/*");
+                startActivityForResult(Intent.createChooser(intent, "Select File"), FILECHOOSER_RESULTCODE);
+                return true;
+            }
+        });
+
+        if (isNetworkAvailable77()) {
+            webView.loadUrl(APP_URL);
+        } else {
+            webView.loadData("<html><body style='text-align:center; padding:50px; font-family:sans-serif;'><h2>No Internet Connection</h2><p>Please check your network settings and try again.</p><button onclick='location.reload()' style='padding:10px 20px; background:#15346b; color:white; border:none; border-radius:5px; margin-top:20px;'>Retry</button></body></html>", "text/html", "UTF-8");
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
+        super.onActivityResult(requestCode, resultCode, intent);
+        if (requestCode == FILECHOOSER_RESULTCODE) {
+            if (null == mUploadMessage) return;
+            Uri result = intent == null || resultCode != RESULT_OK ? null : intent.getData();
+            mUploadMessage.onReceiveValue(result != null ? new Uri[]{result} : null);
+            mUploadMessage = null;
+       
+</think>
+
+Yes.
+cd "D:\kp tracker"
+@'
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.secretariat.workflow">
+    
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    
     <application
         android:allowBackup="true"
         android:label="@string/app_name"
         android:theme="@style/AppTheme"
         android:usesCleartextTraffic="true">
+        
         <activity
             android:name=".MainActivity"
             android:exported="true"
