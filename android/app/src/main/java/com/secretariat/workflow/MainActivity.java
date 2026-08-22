@@ -1,4 +1,4 @@
-﻿package com.secretariat.workflow;
+package com.secretariat.workflow;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -32,24 +32,16 @@ public class MainActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        
         requestWindowFeature(Window.FEATURE_NO_TITLE);
-        getWindow().setFlags(
-            WindowManager.LayoutParams.FLAG_FULLSCREEN,
-            WindowManager.LayoutParams.FLAG_FULLSCREEN
-        );
-        
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setContentView(R.layout.splash_screen);
         
-        new android.os.Handler().postDelayed(() -> {
-            loadMainApp();
-        }, 2000);
+        new android.os.Handler().postDelayed(() -> { loadMainApp(); }, 2000);
     }
     
     private void loadMainApp() {
         setContentView(R.layout.activity_main);
         webView = findViewById(R.id.webView);
-        
         WebSettings settings = webView.getSettings();
         settings.setJavaScriptEnabled(true);
         settings.setDomStorageEnabled(true);
@@ -68,74 +60,49 @@ public class MainActivity extends Activity {
         webView.setWebViewClient(new WebViewClient() {
             @Override
             public void onReceivedError(WebView view, int errorCode, String description, String failingUrl) {
-                if (!isNetworkAvailable()) {
-                    showNoInternetScreen();
-                }
+                if (!isNetworkAvailable()) { showNoInternetScreen(); }
             }
         });
 
         webView.setWebChromeClient(new WebChromeClient() {
             public boolean onShowFileChooser(WebView webView, ValueCallback<Uri[]> filePathCallback, FileChooserParams fileChooserParams) {
-                if (mUploadMessage != null) {
-                    mUploadMessage.onReceiveValue(null);
-                }
+                if (mUploadMessage != null) { mUploadMessage.onReceiveValue(null); }
                 mUploadMessage = filePathCallback;
                 showFileUploadDialog();
                 return true;
             }
         });
 
-        if (isNetworkAvailable()) {
-            webView.loadUrl(APP_URL);
-        } else {
-            showNoInternetScreen();
-        }
+        if (isNetworkAvailable()) { webView.loadUrl(APP_URL); } 
+        else { showNoInternetScreen(); }
     }
     
     private void showFileUploadDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Select Upload Method");
-        
         String[] options = {"Take Photo", "Choose from Gallery", "Browse Files"};
-        
         builder.setItems(options, (dialog, which) -> {
-            switch (which) {
-                case 0:
-                    openCamera();
-                    break;
-                case 1:
-                    openGallery();
-                    break;
-                case 2:
-                    openFilePicker();
-                    break;
-            }
+            if (which == 0) openCamera();
+            else if (which == 1) openGallery();
+            else openFilePicker();
         });
-        
         builder.setOnCancelListener(dialog -> {
-            if (mUploadMessage != null) {
-                mUploadMessage.onReceiveValue(null);
-                mUploadMessage = null;
-            }
+            if (mUploadMessage != null) { mUploadMessage.onReceiveValue(null); mUploadMessage = null; }
         });
-        
         builder.show();
     }
     
     private void openCamera() {
         Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         if (cameraIntent.resolveActivity(getPackageManager()) != null) {
-            File photoFile = null;
             try {
-                photoFile = createImageFile();
-            } catch (IOException ex) {
-                Toast.makeText(this, "Error creating file", Toast.LENGTH_SHORT).show();
-                return;
-            }
-            if (photoFile != null) {
+                String timeStamp = new java.text.SimpleDateFormat("yyyyMMdd_HHmmss").format(new java.util.Date());
+                File photoFile = File.createTempFile("JPEG_" + timeStamp + "_", ".jpg", getExternalFilesDir(null));
                 mCameraImageUri = Uri.fromFile(photoFile);
                 cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, mCameraImageUri);
                 startActivityForResult(cameraIntent, CAMERA_RESULTCODE);
+            } catch (IOException ex) {
+                Toast.makeText(this, "Error creating file", Toast.LENGTH_SHORT).show();
             }
         }
     }
@@ -154,37 +121,20 @@ public class MainActivity extends Activity {
         startActivityForResult(Intent.createChooser(intent, "Select File"), FILECHOOSER_RESULTCODE);
     }
     
-    private File createImageFile() throws IOException {
-        String timeStamp = new java.text.SimpleDateFormat("yyyyMMdd_HHmmss").format(new java.util.Date());
-        String imageFileName = "JPEG_" + timeStamp + "_";
-        File storageDir = getExternalFilesDir(null);
-        return File.createTempFile(imageFileName, ".jpg", storageDir);
-    }
-    
     private void showNoInternetScreen() {
-        webView.loadData("<html><body style='text-align:center; padding:50px; font-family:sans-serif; background:#f0f4f8;'>" +
-            "<h2 style='color:#15346b;'>No Internet Connection</h2>" +
-            "<p style='color:#475569;'>Please check your network settings and try again.</p>" +
-            "<button onclick='location.reload()' style='padding:12px 30px; background:#15346b; color:white; border:none; border-radius:25px; margin-top:20px; font-size:16px; cursor:pointer;'>Retry</button>" +
-            "</body></html>", "text/html", "UTF-8");
+        webView.loadData("<html><body style='text-align:center; padding:50px; font-family:sans-serif; background:#f0f4f8;'><h2 style='color:#15346b;'>No Internet Connection</h2><p style='color:#475569;'>Please check your network settings and try again.</p><button onclick='location.reload()' style='padding:12px 30px; background:#15346b; color:white; border:none; border-radius:25px; margin-top:20px; font-size:16px; cursor:pointer;'>Retry</button></body></html>", "text/html", "UTF-8");
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
         super.onActivityResult(requestCode, resultCode, intent);
-        
         if (requestCode == FILECHOOSER_RESULTCODE || requestCode == CAMERA_RESULTCODE) {
             if (null == mUploadMessage) return;
-            
             Uri result = null;
             if (resultCode == RESULT_OK) {
-                if (requestCode == CAMERA_RESULTCODE) {
-                    result = mCameraImageUri;
-                } else if (intent != null) {
-                    result = intent.getData();
-                }
+                if (requestCode == CAMERA_RESULTCODE) { result = mCameraImageUri; } 
+                else if (intent != null) { result = intent.getData(); }
             }
-            
             mUploadMessage.onReceiveValue(result != null ? new Uri[]{result} : null);
             mUploadMessage = null;
         }
@@ -192,9 +142,8 @@ public class MainActivity extends Activity {
 
     @Override
     public void onBackPressed() {
-        if (webView.canGoBack()) {
-            webView.goBack();
-        } else {
+        if (webView.canGoBack()) { webView.goBack(); } 
+        else {
             if (backPressedTime + 2000 > System.currentTimeMillis()) {
                 if (backToast != null) backToast.cancel();
                 super.onBackPressed();
@@ -207,8 +156,8 @@ public class MainActivity extends Activity {
     }
 
     private boolean isNetworkAvailable() {
-        ConnectivityManager connectivityManager = (ConnectivityManager) getSystemService(CONNECTIVITY_SERVICE);
-        NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
-        return activeNetworkInfo != null && activeNetworkInfo.isConnected();
+        ConnectivityManager cm = (ConnectivityManager) getSystemService(CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+        return activeNetwork != null && activeNetwork.isConnected();
     }
 }
